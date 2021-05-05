@@ -166,7 +166,7 @@ func temp(mountPoint, clusterName, src string, temp bool) []string {
 	}
 	return []string{
 		mountPoint,
-		fmt.Sprintf("gv%c", _paths[1][2]),
+		fmt.Sprintf("gv%c", _paths[2][2]),
 		clusterName,
 		src,
 	}
