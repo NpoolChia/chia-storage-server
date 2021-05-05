@@ -1,11 +1,10 @@
 package mount
 
 import (
+	"github.com/NpoolChia/chia-storage-server/util"
 	"os"
 	"path/filepath"
 	"sort"
-
-	"github.com/NpoolChia/chia-storage-server/util"
 )
 
 const (
@@ -56,9 +55,9 @@ func Mount() string {
 func InitMount() error {
 	filepath.Walk(mountRoot, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
-			ok, err := util.IsMountPoint(info.Name())
+			ok, err := util.IsMountPoint(path)
 			if err != nil {
-				return err
+				return nil
 			}
 			if ok {
 				_mountInfos = append(_mountInfos, mountInfo{

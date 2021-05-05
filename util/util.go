@@ -6,13 +6,9 @@ func IsMountPoint(point string) (bool, error) {
 		return false, err
 	}
 
-	if err != nil {
-		return false, err
-	}
-
 	if r == 0 {
 		return true, nil
 	}
 
-	return true, nil
+	return false, nil
 }
