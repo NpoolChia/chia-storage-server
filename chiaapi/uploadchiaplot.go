@@ -1,6 +1,7 @@
 package chiaapi
 
 import (
+	"net"
 	"net/http"
 
 	types "github.com/NpoolChia/chia-storage-server/types"
@@ -13,13 +14,14 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func UploadChiaPlot(input types.UploadPlotInput) (*types.UploadPlotOutput, error) {
+func UploadChiaPlot(host, port string, input types.UploadPlotInput) (*types.UploadPlotOutput, error) {
 	log.Infof(log.Fields{}, "req to http://%v%v", "", input.PlotURL)
 
+	addr := net.JoinHostPort(host, port)
 	resp, err := httpdaemon.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(input).
-		Post(fmt.Sprintf("http://%v%v", "", types.UploadPlotAPI))
+		Post(fmt.Sprintf("http://%v%v", addr, types.UploadPlotAPI))
 	if err != nil {
 		log.Errorf(log.Fields{}, "heartbeat error: %v", err)
 		return nil, err
