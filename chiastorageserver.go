@@ -3,12 +3,15 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"golang.org/x/xerrors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"golang.org/x/xerrors"
 
 	log "github.com/EntropyPool/entropy-logger"
 	chiastorageProxyTypes "github.com/NpoolChia/chia-storage-proxy/types"
@@ -19,7 +22,8 @@ import (
 )
 
 type ChiaStorageServerConfig struct {
-	Port int `json:"port"`
+	Port        int    `json:"port"`
+	ClusterName string `json:"cluster_name"`
 }
 
 type ChiaStorageServer struct {
@@ -118,7 +122,7 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 			return
 		}
 
-		tmp := filepath.Join(path, temp(plotFile))
+		tmp := filepath.Join(temp(path, s.config.ClusterName, plotFile, true)...)
 		plot, err := os.Create(tmp)
 		if err != nil {
 			log.Errorf(log.Fields{}, "fail to create tmp for %v: %v", input.PlotURL, err)
@@ -140,6 +144,7 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 
 		// 移除临时文件
 		defer os.Remove(tmp)
+		plotFile = filepath.Join(temp(path, s.config.ClusterName, plotFile, false)...)
 		if err = os.Rename(tmp, plotFile); err != nil {
 			log.Errorf(log.Fields{}, "fail to rename tmp file for %v: %v", input.PlotURL, err)
 			return
@@ -148,8 +153,12 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 	return nil, "", 0
 }
 
-func temp(src string) string {
-	return src + ".tmp"
+func temp(mountPoint, clusterName, src string, temp bool) []string {
+	_paths := strings.SplitN(mountPoint, "/", 2)
+	if temp {
+		return []string{fmt.Sprintf("gv%c", _paths[1][2]), clusterName, src + ".tmp"}
+	}
+	return []string{fmt.Sprintf("gv%c", _paths[1][2]), clusterName, src}
 }
 
 func (s *ChiaStorageServer) Run() error {
