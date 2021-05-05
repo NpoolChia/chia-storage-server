@@ -13,13 +13,13 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func UploadChiaPlot(input types.UploadPlotInput) (*types.UploadPlotOutput, error) {
+func UploadChiaPlot(host string, input types.UploadPlotInput) (*types.UploadPlotOutput, error) {
 	log.Infof(log.Fields{}, "req to http://%v%v", "", input.PlotURL)
 
 	resp, err := httpdaemon.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(input).
-		Post(fmt.Sprintf("http://%v%v", "", types.UploadPlotAPI))
+		Post(fmt.Sprintf("http://%v%v", host, types.UploadPlotAPI))
 	if err != nil {
 		log.Errorf(log.Fields{}, "heartbeat error: %v", err)
 		return nil, err
