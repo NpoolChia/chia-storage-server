@@ -1,7 +1,7 @@
 package mount
 
 import (
-	"io/fs"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -54,19 +54,15 @@ func Mount() string {
 
 // InitMount find all mount info
 func InitMount() error {
-	filepath.WalkDir(mountRoot, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			ok, err := util.IsMountPoint(d.Name())
+	filepath.Walk(mountRoot, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			ok, err := util.IsMountPoint(info.Name())
 			if err != nil {
 				return err
 			}
 			if ok {
-				finfo, err := d.Info()
-				if err != nil {
-					return err
-				}
 				_mountInfos = append(_mountInfos, mountInfo{
-					size: finfo.Size(),
+					size: info.Size(),
 					path: path,
 				})
 			}
