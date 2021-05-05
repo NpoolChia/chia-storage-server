@@ -15,7 +15,7 @@ import (
 )
 
 func UploadChiaPlot(host, port string, input types.UploadPlotInput) (*types.UploadPlotOutput, error) {
-	log.Infof(log.Fields{}, "req to http://%v%v", "", input.PlotURL)
+	log.Infof(log.Fields{}, "req to %v%v", "", input.PlotURL)
 
 	addr := net.JoinHostPort(host, port)
 	resp, err := httpdaemon.R().

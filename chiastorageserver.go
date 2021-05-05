@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"golang.org/x/xerrors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -112,6 +113,7 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 		// 没有挂载的盘符
 		if path == "" {
 			// TODO
+			err = xerrors.Errorf("no suitable path found")
 			return
 		}
 
