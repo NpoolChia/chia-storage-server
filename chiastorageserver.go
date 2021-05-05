@@ -154,11 +154,22 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 }
 
 func temp(mountPoint, clusterName, src string, temp bool) []string {
-	_paths := strings.SplitN(mountPoint, "/", 2)
+	// [1] mnt [2] sda
+	_paths := strings.Split(mountPoint, "/")
 	if temp {
-		return []string{fmt.Sprintf("gv%c", _paths[1][2]), clusterName, src + ".tmp"}
+		return []string{
+			mountPoint,
+			fmt.Sprintf("gv%c", _paths[2][2]),
+			clusterName,
+			src + ".tmp",
+		}
 	}
-	return []string{fmt.Sprintf("gv%c", _paths[1][2]), clusterName, src}
+	return []string{
+		mountPoint,
+		fmt.Sprintf("gv%c", _paths[1][2]),
+		clusterName,
+		src,
+	}
 }
 
 func (s *ChiaStorageServer) Run() error {
