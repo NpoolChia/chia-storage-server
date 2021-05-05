@@ -1,0 +1,14 @@
+[Unit]
+Description=Chia Storage Server
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/chia_storage_server/chia-storage-server
+TimeoutSec=300
+PrivateTmp=true
+WorkingDirectory=/opt/chia_storage_server
+
+[Install]
+WantedBy=multi-user.target
