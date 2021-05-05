@@ -3,6 +3,9 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/EntropyPool/entropy-logger v0.0.0-20210210082337-af230fd03ce7/go.mod h1:perlDQKCtiDeoe5S/iS6VlZluvMQ6KMDb6V23ulWMV4=
 github.com/EntropyPool/entropy-logger v0.0.0-20210320022718-3091537e035f h1:oSnyP3xlxCmGh2WsdTcp/++V38L1HdP4LdJ1dVNPqBw=
 github.com/EntropyPool/entropy-logger v0.0.0-20210320022718-3091537e035f/go.mod h1:perlDQKCtiDeoe5S/iS6VlZluvMQ6KMDb6V23ulWMV4=
+github.com/NpoolChia/chia-storage-proxy v0.0.0-20210505100152-34961917e6e1 h1:4CP3KsJAqgsY+wCMDBveay4wk6BcH5pN5CKsksveLhw=
+github.com/NpoolChia/chia-storage-proxy v0.0.0-20210505100152-34961917e6e1/go.mod h1:QIg0khbFnjG6mJSaZjxC5XBPMYJyfcw+/1ilQEpbSSo=
+github.com/NpoolChia/chia-storage-server v0.0.0-20210505094355-2c1fde050a0c/go.mod h1:cibKx7jtithTFvBu6O9IsJOPbd2dzeniB+Wesfhssho=
 github.com/NpoolDevOps/fbc-auth-service v0.0.0-20210319121457-54710063b31f/go.mod h1:FSKZRNVwKw/DxbGgb+WB43H1seNTETTSNgOQDJZjeL0=
 github.com/NpoolDevOps/fbc-auth-service v0.0.0-20210323131841-28695bb4b6a8/go.mod h1:3JA4mxc7e9f0dfcxT7WRKz+ASJb4tjcrcJ0rWmHRBUc=
 github.com/NpoolDevOps/fbc-auth-service v0.0.0-20210411082937-64d2220ba926 h1:j4fEmlXHwEtKQoHLP7wBYvcpEAIsW93cBG5y1Ggbg/0=
@@ -14,6 +17,8 @@ github.com/NpoolDevOps/fbc-license-service v0.0.0-20210328062839-d1527bc31f7e/go
 github.com/NpoolRD/http-daemon v0.0.0-20210210091512-241ac31803ef/go.mod h1:1zc5D8V0YuVLbkAOLaWY7V4jaZ4iqOibGvJcx+SpZOM=
 github.com/NpoolRD/http-daemon v0.0.0-20210324100344-82fee56de8ac h1:FmZvMTqsfsxiLfqnDp9zYozFwRo673cRUuGP8bsBIaU=
 github.com/NpoolRD/http-daemon v0.0.0-20210324100344-82fee56de8ac/go.mod h1:1zc5D8V0YuVLbkAOLaWY7V4jaZ4iqOibGvJcx+SpZOM=
+github.com/NpoolRD/http-daemon v0.0.0-20210505073728-a1d91b8af9df h1:YZaFCGAilg1pQz30jSG7d/s2e0tvh4iZwtyJvqjvu7g=
+github.com/NpoolRD/http-daemon v0.0.0-20210505073728-a1d91b8af9df/go.mod h1:1zc5D8V0YuVLbkAOLaWY7V4jaZ4iqOibGvJcx+SpZOM=
 github.com/PuerkitoBio/goquery v1.5.1/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
 github.com/andybalholm/cascadia v1.1.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

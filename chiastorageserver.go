@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	log "github.com/EntropyPool/entropy-logger"
+	chiastorageProxyTypes "github.com/NpoolChia/chia-storage-proxy/types"
 	"github.com/NpoolChia/chia-storage-server/pkg/mount"
 	types "github.com/NpoolChia/chia-storage-server/types"
 	httpdaemon "github.com/NpoolRD/http-daemon"
@@ -79,14 +80,27 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 		)
 		defer func() {
 			// notify client write plot file result
-			notifyURL := ""
+			var (
+				notifyURL = ""
+				body      = make([]byte, 0)
+			)
 			if err != nil {
 				notifyURL = input.FailURL
+				fail := chiastorageProxyTypes.FailPlotInput{
+					PlotFile: plotFile,
+				}
+				body, _ = json.Marshal(fail)
 			} else {
 				notifyURL = input.FinishURL
+				finish := chiastorageProxyTypes.FinishPlotInput{
+					PlotFile: plotFile,
+				}
+				body, _ = json.Marshal(finish)
 			}
 
 			_, err = httpdaemon.R().
+				SetHeader("Content-Type", "application/json").
+				SetBody(body).
 				Post(notifyURL)
 			if err != nil {
 				return
@@ -100,7 +114,8 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 			// TODO
 			return
 		}
-		tmp := temp(plotFile)
+
+		tmp := filepath.Join(path, temp(plotFile))
 		plot, err := os.Create(tmp)
 		if err != nil {
 			return
