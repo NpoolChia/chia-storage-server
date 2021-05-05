@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"golang.org/x/xerrors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -112,29 +113,35 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 		// 没有挂载的盘符
 		if path == "" {
 			// TODO
+			err = xerrors.Errorf("no suitable path found")
+			log.Errorf(log.Fields{}, "fail to select disk for %v: %v", input.PlotURL, err)
 			return
 		}
 
 		tmp := filepath.Join(path, temp(plotFile))
 		plot, err := os.Create(tmp)
 		if err != nil {
+			log.Errorf(log.Fields{}, "fail to create tmp for %v: %v", input.PlotURL, err)
 			return
 		}
 
 		defer plot.Close()
 		resp, err = httpdaemon.R().SetDoNotParseResponse(true).Get(input.PlotURL)
 		if err != nil {
+			log.Errorf(log.Fields{}, "fail to get file content for %v: %v", input.PlotURL, err)
 			return
 		}
 
 		defer resp.RawBody().Close()
 		if _, err = io.Copy(plot, resp.RawBody()); err != nil {
+			log.Errorf(log.Fields{}, "fail to write file content for %v: %v", input.PlotURL, err)
 			return
 		}
 
 		// 移除临时文件
 		defer os.Remove(tmp)
 		if err = os.Rename(tmp, plotFile); err != nil {
+			log.Errorf(log.Fields{}, "fail to rename tmp file for %v: %v", input.PlotURL, err)
 			return
 		}
 	}(input)
