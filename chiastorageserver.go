@@ -122,10 +122,11 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 		}
 
 		defer plot.Close()
-		resp, err = httpdaemon.R().Get(input.PlotURL)
+		resp, err = httpdaemon.R().SetDoNotParseResponse(true).Get(input.PlotURL)
 		if err != nil {
 			return
 		}
+
 		defer resp.RawBody().Close()
 		if _, err = io.Copy(plot, resp.RawBody()); err != nil {
 			return
