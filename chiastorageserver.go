@@ -87,13 +87,13 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 			if err != nil {
 				notifyURL = input.FailURL
 				fail := chiastorageProxyTypes.FailPlotInput{
-					PlotFile: plotFile,
+					PlotFile: input.PlotURL,
 				}
 				body, _ = json.Marshal(fail)
 			} else {
 				notifyURL = input.FinishURL
 				finish := chiastorageProxyTypes.FinishPlotInput{
-					PlotFile: plotFile,
+					PlotFile: input.PlotURL,
 				}
 				body, _ = json.Marshal(finish)
 			}
