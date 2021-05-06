@@ -61,17 +61,20 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 	// get chia plot file
 	b, err := ioutil.ReadAll(req.Body)
 	if err != nil {
+		log.Errorf(log.Fields{}, "fail to read body from %v", req.URL)
 		return nil, err.Error(), -1
 	}
 
 	input := types.UploadPlotInput{}
 	err = json.Unmarshal(b, &input)
 	if err != nil {
+		log.Errorf(log.Fields{}, "fail to parse body from %v", req.URL)
 		return nil, err.Error(), -2
 	}
 	if input.PlotURL == "" ||
 		input.FinishURL == "" ||
 		input.FailURL == "" {
+		log.Errorf(log.Fields{}, "invalid input parameters from %v", req.URL)
 		return nil, errPlotURLEmpty.Error(), -3
 	}
 
@@ -112,6 +115,7 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 		}()
 
 		// 选择存放的目录
+		log.Infof(log.Fields{}, "try to select suitable path for %v", input.PlotURL)
 		path := mount.Mount()
 		// 没有挂载的盘符
 		if path == "" {

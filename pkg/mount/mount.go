@@ -1,7 +1,6 @@
 package mount
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -50,12 +49,12 @@ func (a mountInfos) Less(i, j int) bool {
 // Choose the right moint point
 func (a mountInfos) mount() mountInfo {
 	// lazy check
-	initMount()
 	if len(a) > 0 {
 		if !sort.IsSorted(mountInfos(a)) {
 			// lazy sort
 			sort.Sort(mountInfos(a))
 		}
+		log.Infof(log.Fields{}, "%v will be used", a[0].path)
 		return a[0]
 	}
 	return mountInfo{}
@@ -63,6 +62,7 @@ func (a mountInfos) mount() mountInfo {
 
 // Mount 寻找合适的目录
 func Mount() string {
+	initMount()
 	lock.Lock()
 	defer lock.Unlock()
 	return _mountInfos.mount().path
@@ -75,53 +75,51 @@ func InitMount() error {
 }
 
 func initMount() error {
-	// read all mount dir
-	mountEntry, err := ioutil.ReadDir(mountRoot)
-	if err != nil {
-		return err
-	}
-
 	mountPoints := make(map[string]mountInfo)
-	for _, mountPoint := range mountEntry {
-		isDir := mountPoint.IsDir()
-		if isDir {
-			absMountPath := filepath.Join(mountRoot, mountPoint.Name())
-			ok, err := util.IsMountPoint(absMountPath)
-			if err != nil {
-				log.Errorf(log.Fields{}, "mountpoint %v check error: %v", mountPoint.Name(), err)
-				continue
-			}
-			if ok {
-				// find all sub file, then statistics all file size
-				filepath.Walk(absMountPath, func(path string, info os.FileInfo, err error) error {
-					if !info.IsDir() {
-						tmpFile := 0
-						if filepath.Ext(info.Name()) == TmpFileExt {
-							tmpFile = 1
+	filepath.Walk(mountRoot, func(absMountPath string, info os.FileInfo, err error) error {
+		if err != nil || info == nil {
+			log.Errorf(log.Fields{}, "path %v is error: %v", absMountPath, err)
+			return nil
+		}
+
+		ok, err := util.IsMountPoint(absMountPath)
+		if err != nil {
+			log.Errorf(log.Fields{}, "path %v check mountpoint error: %v", absMountPath, err)
+			return nil
+		}
+
+		if ok {
+			filepath.Walk(absMountPath, func(path string, info os.FileInfo, err error) error {
+				if err == nil && info != nil && !info.IsDir() {
+					tmpFile := 0
+					if filepath.Ext(info.Name()) == TmpFileExt {
+						tmpFile = 1
+					}
+					if v, ok := mountPoints[absMountPath]; ok {
+						mountPoints[absMountPath] = mountInfo{
+							path:         absMountPath,
+							size:         v.size + info.Size(),
+							tmpFileCount: v.tmpFileCount + tmpFile,
 						}
-						if v, ok := mountPoints[absMountPath]; ok {
-							mountPoints[absMountPath] = mountInfo{
-								path:         absMountPath,
-								size:         v.size + info.Size(),
-								tmpFileCount: v.tmpFileCount + tmpFile,
-							}
-						} else {
-							mountPoints[absMountPath] = mountInfo{
-								path:         absMountPath,
-								size:         info.Size(),
-								tmpFileCount: tmpFile,
-							}
+					} else {
+						mountPoints[absMountPath] = mountInfo{
+							path:         absMountPath,
+							size:         info.Size(),
+							tmpFileCount: tmpFile,
 						}
 					}
-					return nil
-				})
-			}
+				}
+				return nil
+			})
 		}
-	}
+		
+		return nil
+	})
 
 	lock.Lock()
 	_mountInfos = []mountInfo{}
 	for _, v := range mountPoints {
+		log.Infof(log.Fields{}, "append valid mountpoint %v", v.path)
 		_mountInfos = append(_mountInfos, v)
 	}
 	lock.Unlock()
