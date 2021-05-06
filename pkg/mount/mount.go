@@ -1,7 +1,9 @@
 package mount
 
 import (
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -67,12 +69,13 @@ func Mount() string {
 
 // InitMount find all mount info
 func InitMount() error {
+	exec.Command("rm", "-rf", "/mnt/*/*/*/*.tmp").Run()
 	return initMount()
 }
 
 func initMount() error {
 	// read all mount dir
-	mountEntry, err := os.ReadDir(mountRoot)
+	mountEntry, err := ioutil.ReadDir(mountRoot)
 	if err != nil {
 		return err
 	}
