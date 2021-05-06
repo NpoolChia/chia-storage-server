@@ -1,6 +1,6 @@
 module github.com/NpoolChia/chia-storage-server
 
-go 1.16
+go 1.15
 
 require (
 	github.com/EntropyPool/entropy-logger v0.0.0-20210320022718-3091537e035f
