@@ -58,7 +58,6 @@ var (
 )
 
 func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.Request) (interface{}, string, int) {
-	req.URL.Query().Get("")
 	// get chia plot file
 	b, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -161,7 +160,7 @@ func temp(mountPoint, clusterName, src string, temp bool) []string {
 			mountPoint,
 			fmt.Sprintf("gv%c", _paths[2][2]),
 			clusterName,
-			src + ".tmp",
+			src + mount.TmpFileExt,
 		}
 	}
 	return []string{
