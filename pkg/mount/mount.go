@@ -1,11 +1,13 @@
 package mount
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
 	"sync"
 
+	log "github.com/EntropyPool/entropy-logger"
 	"github.com/NpoolChia/chia-storage-server/util"
 )
 
@@ -72,7 +74,7 @@ func InitMount() error {
 
 func initMount() error {
 	// read all mount dir
-	mountEntry, err := os.ReadDir(mountRoot)
+	mountEntry, err := ioutil.ReadDir(mountRoot)
 	if err != nil {
 		return err
 	}
@@ -84,7 +86,8 @@ func initMount() error {
 			absMountPath := filepath.Join(mountRoot, mountPoint.Name())
 			ok, err := util.IsMountPoint(absMountPath)
 			if err != nil {
-				return err
+				log.Errorf(log.Fields{}, "check path %v is mount point error: %v", absMountPath, err)
+				continue
 			}
 			if ok {
 				// find all sub file, then statistics all file size
