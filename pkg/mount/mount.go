@@ -8,6 +8,7 @@ import (
 	"sort"
 	"sync"
 
+	log "github.com/EntropyPool/entropy-logger"
 	"github.com/NpoolChia/chia-storage-server/util"
 )
 
@@ -87,7 +88,8 @@ func initMount() error {
 			absMountPath := filepath.Join(mountRoot, mountPoint.Name())
 			ok, err := util.IsMountPoint(absMountPath)
 			if err != nil {
-				return err
+				log.Errorf(log.Fields{}, "mountpoint %v check error: %v", mountPoint.Name(), err)
+				continue
 			}
 			if ok {
 				// find all sub file, then statistics all file size
