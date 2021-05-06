@@ -60,6 +60,8 @@ func (a mountInfos) mount() mountInfo {
 
 // Mount 寻找合适的目录
 func Mount() string {
+	lock.Lock()
+	defer lock.Unlock()
 	return _mountInfos.mount().path
 }
 
@@ -92,7 +94,6 @@ func initMount() error {
 						if filepath.Ext(info.Name()) == TmpFileExt {
 							tmpFile = 1
 						}
-						lock.Lock()
 						if v, ok := mountPoints[absMountPath]; ok {
 							mountPoints[absMountPath] = mountInfo{
 								path:         absMountPath,
@@ -106,7 +107,6 @@ func initMount() error {
 								tmpFileCount: tmpFile,
 							}
 						}
-						lock.Unlock()
 					}
 					return nil
 				})
@@ -114,9 +114,12 @@ func initMount() error {
 		}
 	}
 
+	lock.Lock()
+	_mountInfos = []mountInfo{}
 	for _, v := range mountPoints {
 		_mountInfos = append(_mountInfos, v)
 	}
+	lock.Unlock()
 
 	return nil
 }
