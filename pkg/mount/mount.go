@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
+	_ "sort"
 	"sync"
 
 	log "github.com/EntropyPool/entropy-logger"
@@ -32,8 +32,9 @@ type (
 )
 
 var (
-	_mountInfos mountInfos
-	lock        sync.Mutex
+	_mountInfos   mountInfos
+	lock          sync.Mutex
+	curMountIndex int
 )
 
 func (a mountInfos) Len() int      { return len(a) }
@@ -49,15 +50,31 @@ func (a mountInfos) Less(i, j int) bool {
 // Choose the right moint point
 func (a mountInfos) mount() mountInfo {
 	// lazy check
-	if len(a) > 0 {
-		if !sort.IsSorted(mountInfos(a)) {
-			// lazy sort
-			sort.Sort(mountInfos(a))
+	/*
+		if len(a) > 0 {
+			if !sort.IsSorted(mountInfos(a)) {
+				// lazy sort
+				sort.Sort(mountInfos(a))
+			}
+			log.Infof(log.Fields{}, "%v will be used", a[0].path)
+			return a[0]
 		}
-		log.Infof(log.Fields{}, "%v will be used", a[0].path)
-		return a[0]
+	*/
+
+	info := mountInfo{}
+	index := 0
+
+	for i := 0; i < len(a); i++ {
+		info = a[(curMountIndex+i)%len(a)]
+		if info.size < 200*1024*1024*1024 {
+			continue
+		}
+		index = i
 	}
-	return mountInfo{}
+
+	curMountIndex = (curMountIndex + index + 1) % len(a)
+
+	return info
 }
 
 // Mount 寻找合适的目录
@@ -112,7 +129,7 @@ func initMount() error {
 				return nil
 			})
 		}
-		
+
 		return nil
 	})
 
