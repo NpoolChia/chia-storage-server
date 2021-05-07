@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	_ "sort"
 	"sync"
+	"strings"
 
 	log "github.com/EntropyPool/entropy-logger"
 	"github.com/NpoolChia/chia-storage-server/util"
@@ -87,7 +88,12 @@ func Mount() string {
 
 // InitMount find all mount info
 func InitMount() error {
-	exec.Command("rm", "-rf", "/mnt/*/*/*/*.tmp").Run()
+	tmps, _ := exec.Command("/usr/bin/find", "/mnt", "-name", "*.tmp").Output()
+	tmpFiles := strings.Split(string(tmps), "\n")
+	for _, tmp := range tmpFiles {
+		log.Infof(log.Fields{}, "remove old tmps %v", tmp)
+		exec.Command("/usr/bin/rm", "-rf", tmp).Run()
+	}
 	return initMount()
 }
 
@@ -95,13 +101,11 @@ func initMount() error {
 	mountPoints := make(map[string]mountInfo)
 	filepath.Walk(mountRoot, func(absMountPath string, info os.FileInfo, err error) error {
 		if err != nil || info == nil {
-			log.Errorf(log.Fields{}, "path %v is error: %v", absMountPath, err)
 			return nil
 		}
 
 		ok, err := util.IsMountPoint(absMountPath)
 		if err != nil {
-			log.Errorf(log.Fields{}, "path %v check mountpoint error: %v", absMountPath, err)
 			return nil
 		}
 
@@ -136,7 +140,6 @@ func initMount() error {
 	lock.Lock()
 	_mountInfos = []mountInfo{}
 	for _, v := range mountPoints {
-		log.Infof(log.Fields{}, "append valid mountpoint %v", v.path)
 		_mountInfos = append(_mountInfos, v)
 	}
 	lock.Unlock()
