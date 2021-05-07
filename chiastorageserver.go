@@ -126,6 +126,8 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 		}
 
 		tmp := filepath.Join(temp(path, s.config.ClusterName, plotFile, true)...)
+		os.MkdirAll(filepath.Dir(tmp), 0666)
+
 		plot, err := os.Create(tmp)
 		if err != nil {
 			log.Errorf(log.Fields{}, "fail to create tmp for %v: %v", input.PlotURL, err)
@@ -159,6 +161,7 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 func temp(mountPoint, clusterName, src string, temp bool) []string {
 	// [1] mnt [2] sda
 	_paths := strings.Split(mountPoint, "/")
+
 	if temp {
 		return []string{
 			mountPoint,
