@@ -47,9 +47,9 @@ func (x *diskStatus) diskUsage() error {
 		return err
 	}
 	// kb
-	x.all = fs.Blocks * uint64(fs.Bsize) / KB
-	x.avail = fs.Bavail * uint64(fs.Bsize) / KB
-	x.free = fs.Bfree * uint64(fs.Bsize) / KB
+	x.all = fs.Blocks * uint64(fs.Bsize)
+	x.avail = fs.Bavail * uint64(fs.Bsize)
+	x.free = fs.Bfree * uint64(fs.Bsize)
 	x.used = x.all - x.free
 	return nil
 }
