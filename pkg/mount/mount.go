@@ -61,11 +61,12 @@ func (a mountInfos) mount() mountInfo {
 	index := 0
 
 	for i := 0; i < len(a); i++ {
-		info = a[(curMountIndex+i)%len(a)]
-		if info.size < 600*1024*1024*1024 {
+		myInfo := a[(curMountIndex+i)%len(a)]
+		if myInfo.size < 600*1024*1024*1024 {
 			continue
 		}
 		index = i
+		break
 	}
 
 	curMountIndex = (curMountIndex + index + 1) % len(a)
