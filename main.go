@@ -5,6 +5,7 @@ import (
 
 	log "github.com/EntropyPool/entropy-logger"
 	"github.com/NpoolChia/chia-storage-server/pkg/mount"
+	"github.com/NpoolChia/chia-storage-server/tasks"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"
 )
@@ -12,6 +13,13 @@ import (
 func main() {
 	// initMount
 	mount.InitMount()
+
+	// 初始化队列
+	q := tasks.NewQueue(tasks.DefaultQSize)
+	q.AddCallBack(tasks.TaskTodo, tasks.Fetch)    //拉取
+	q.AddCallBack(tasks.TaskFinish, tasks.Finsih) //完成
+	q.AddCallBack(tasks.TaskFail, tasks.Fail)     //失败
+
 	app := &cli.App{
 		Name:                 "chia-storage-service",
 		Usage:                "chia storage service",
