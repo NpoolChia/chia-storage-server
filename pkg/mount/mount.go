@@ -61,11 +61,14 @@ func (a mountInfos) mount() mountInfo {
 	index := 0
 
 	for i := 0; i < len(a); i++ {
-		info = a[(curMountIndex+i)%len(a)]
-		if info.size < 600*1024*1024*1024 {
+		myInfo := a[(curMountIndex+i)%len(a)]
+		if myInfo.size < 600*1024*1024*1024 {
+			log.Infof(log.Fields{}, "%v available %v < 600G", myInfo.path, myInfo.size)
 			continue
 		}
+		info = myInfo
 		index = i
+		break
 	}
 
 	curMountIndex = (curMountIndex + index + 1) % len(a)
@@ -122,6 +125,7 @@ func initMount() error {
 	lock.Lock()
 	_mountInfos = []mountInfo{}
 	for _, v := range mountPoints {
+		log.Infof(log.Fields{}, "append valid mountpoint %v | %v", v.path, v.size)
 		_mountInfos = append(_mountInfos, v)
 	}
 	lock.Unlock()
