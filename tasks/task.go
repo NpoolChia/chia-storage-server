@@ -70,7 +70,13 @@ func Fetch(input Meta) {
 	}
 
 	// 移除临时文件
-	defer os.Remove(tmp)
+	defer func() {
+		// 文件存在
+		_, err := os.Stat(tmp)
+		if err == nil {
+			os.Remove(tmp)
+		}
+	}()
 	plotFile = filepath.Join(temp(path, input.ClusterName, plotFile, false)...)
 	if err = os.Rename(tmp, plotFile); err != nil {
 		log.Errorf(log.Fields{}, "fail to rename tmp file for %v: %v", input.PlotURL, err)
