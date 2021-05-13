@@ -75,7 +75,9 @@ func NewQueue(qsize int) {
 		qsize = DefaultQSize
 	}
 	globalQueue = &queue{
-		q: make(chan Meta, qsize),
+		q:        make(chan Meta, qsize),
+		added:    make(map[string]struct{}),
+		callback: make(map[uint8]func(Meta)),
 	}
 	// 拉取数据的任务
 	go globalQueue.fetch()
