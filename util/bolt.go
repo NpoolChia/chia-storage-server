@@ -14,7 +14,7 @@ var (
 
 var (
 	boltClient sync.Map
-	lock       sync.Locker
+	lock       sync.Mutex
 )
 
 func BoltClient() (*bolt.DB, error) {

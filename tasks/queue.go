@@ -91,6 +91,7 @@ func (q *queue) Add(meta Meta) {
 	if _, ok := q.added[meta.PlotURL]; !ok {
 		q.added[meta.PlotURL] = struct{}{}
 	}
+	// 这里是很危险, 假设队里足够长
 	q.q <- meta
 	q.lock.Unlock()
 }
