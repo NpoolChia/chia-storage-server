@@ -73,7 +73,9 @@ func (a mountInfos) mount() mountInfo {
 		index = i
 	}
 
-	curMountIndex = (curMountIndex + index + 1) % len(a)
+	if 0 < len(a) {
+		curMountIndex = (curMountIndex + index + 1) % len(a)
+	}
 
 	return info
 }
