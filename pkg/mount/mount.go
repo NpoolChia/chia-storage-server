@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	_ "sort"
-	"sync"
 	"strings"
+	"sync"
 
 	log "github.com/EntropyPool/entropy-logger"
 	"github.com/NpoolChia/chia-storage-server/util"
@@ -23,9 +23,7 @@ type (
 		// 挂载点
 		path string
 		// 大小
-		size int64
-		// .tmp count
-		tmpFileCount int
+		size uint64
 	}
 
 	// all mount point info
@@ -42,10 +40,7 @@ func (a mountInfos) Len() int      { return len(a) }
 func (a mountInfos) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a mountInfos) Less(i, j int) bool {
 	// first sort by size, then tmp file count
-	if a[i].size == a[j].size {
-		return a[i].tmpFileCount < a[j].tmpFileCount
-	}
-	return a[i].size < a[j].size
+	return a[i].size > a[j].size
 }
 
 // Choose the right moint point
@@ -66,11 +61,14 @@ func (a mountInfos) mount() mountInfo {
 	index := 0
 
 	for i := 0; i < len(a); i++ {
-		info = a[(curMountIndex+i)%len(a)]
-		if info.size < 600*1024*1024*1024 {
+		myInfo := a[(curMountIndex+i)%len(a)]
+		if myInfo.size < 600*1024*1024*1024 {
+			log.Infof(log.Fields{}, "%v available %v < 600G", myInfo.path, myInfo.size)
 			continue
 		}
+		info = myInfo
 		index = i
+		break
 	}
 
 	if 0 < len(a) {
@@ -112,28 +110,15 @@ func initMount() error {
 		}
 
 		if ok {
-			filepath.Walk(absMountPath, func(path string, info os.FileInfo, err error) error {
-				if err == nil && info != nil && !info.IsDir() {
-					tmpFile := 0
-					if filepath.Ext(info.Name()) == TmpFileExt {
-						tmpFile = 1
-					}
-					if v, ok := mountPoints[absMountPath]; ok {
-						mountPoints[absMountPath] = mountInfo{
-							path:         absMountPath,
-							size:         v.size + info.Size(),
-							tmpFileCount: v.tmpFileCount + tmpFile,
-						}
-					} else {
-						mountPoints[absMountPath] = mountInfo{
-							path:         absMountPath,
-							size:         info.Size(),
-							tmpFileCount: tmpFile,
-						}
-					}
-				}
+			avail, err := util.New(absMountPath).GetAvail()
+			if err != nil {
 				return nil
-			})
+			}
+
+			mountPoints[absMountPath] = mountInfo{
+				path: absMountPath,
+				size: avail,
+			}
 		}
 
 		return nil
@@ -142,6 +127,7 @@ func initMount() error {
 	lock.Lock()
 	_mountInfos = []mountInfo{}
 	for _, v := range mountPoints {
+		log.Infof(log.Fields{}, "append valid mountpoint %v | %v", v.path, v.size)
 		_mountInfos = append(_mountInfos, v)
 	}
 	lock.Unlock()

@@ -4,21 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"golang.org/x/xerrors"
 
 	log "github.com/EntropyPool/entropy-logger"
-	chiastorageProxyTypes "github.com/NpoolChia/chia-storage-proxy/types"
-	"github.com/NpoolChia/chia-storage-server/pkg/mount"
+	"github.com/NpoolChia/chia-storage-server/tasks"
 	types "github.com/NpoolChia/chia-storage-server/types"
+	"github.com/NpoolChia/chia-storage-server/util"
 	httpdaemon "github.com/NpoolRD/http-daemon"
-	"github.com/go-resty/resty/v2"
+	"github.com/boltdb/bolt"
 )
 
 type ChiaStorageServerConfig struct {
@@ -78,104 +72,34 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 		return nil, errPlotURLEmpty.Error(), -3
 	}
 
-	plotFile := filepath.Base(input.PlotURL)
+	// 入库，调度队列处理
+	db, err := util.BoltClient()
+	if err != nil {
+		return nil, err.Error(), -3
+	}
 
-	go func(input types.UploadPlotInput) {
-		var (
-			err  error
-			resp *resty.Response
-		)
-		defer func() {
-			// notify client write plot file result
-			var (
-				notifyURL = ""
-				body      = make([]byte, 0)
-			)
-			if err != nil {
-				notifyURL = input.FailURL
-				fail := chiastorageProxyTypes.FailPlotInput{
-					PlotFile: input.PlotURL,
-				}
-				body, _ = json.Marshal(fail)
-			} else {
-				notifyURL = input.FinishURL
-				finish := chiastorageProxyTypes.FinishPlotInput{
-					PlotFile: input.PlotURL,
-				}
-				body, _ = json.Marshal(finish)
-			}
-
-			_, err = httpdaemon.R().
-				SetHeader("Content-Type", "application/json").
-				SetBody(body).
-				Post(notifyURL)
-			if err != nil {
-				return
-			}
-		}()
-
-		// 选择存放的目录
-		log.Infof(log.Fields{}, "try to select suitable path for %v", input.PlotURL)
-		path := mount.Mount()
-		// 没有挂载的盘符
-		if path == "" {
-			// TODO
-			err = xerrors.Errorf("no suitable path found")
-			log.Errorf(log.Fields{}, "fail to select disk for %v: %v", input.PlotURL, err)
-			return
+	if err := db.Update(func(tx *bolt.Tx) error {
+		bk := tx.Bucket(util.DefaultBucket)
+		if r := bk.Get([]byte(input.PlotURL)); r != nil {
+			return fmt.Errorf("chia plot file url: %s already added", input.PlotURL)
 		}
-
-		tmp := filepath.Join(temp(path, s.config.ClusterName, plotFile, true)...)
-		os.MkdirAll(filepath.Dir(tmp), 0666)
-
-		plot, err := os.Create(tmp)
+		meta := tasks.Meta{
+			Status:      tasks.TaskTodo,
+			ClusterName: s.config.ClusterName,
+			PlotURL:     input.PlotURL,
+			FinishURL:   input.FinishURL,
+			FailURL:     input.FailURL,
+		}
+		ms, err := json.Marshal(meta)
 		if err != nil {
-			log.Errorf(log.Fields{}, "fail to create tmp for %v: %v", input.PlotURL, err)
-			return
+			return err
 		}
+		return bk.Put([]byte(input.PlotURL), ms)
+	}); err != nil {
+		return nil, err.Error(), -4
+	}
 
-		defer plot.Close()
-		resp, err = httpdaemon.R().SetDoNotParseResponse(true).Get(input.PlotURL)
-		if err != nil {
-			log.Errorf(log.Fields{}, "fail to get file content for %v: %v", input.PlotURL, err)
-			return
-		}
-
-		defer resp.RawBody().Close()
-		if _, err = io.Copy(plot, resp.RawBody()); err != nil {
-			log.Errorf(log.Fields{}, "fail to write file content for %v: %v", input.PlotURL, err)
-			return
-		}
-
-		// 移除临时文件
-		defer os.Remove(tmp)
-		plotFile = filepath.Join(temp(path, s.config.ClusterName, plotFile, false)...)
-		if err = os.Rename(tmp, plotFile); err != nil {
-			log.Errorf(log.Fields{}, "fail to rename tmp file for %v: %v", input.PlotURL, err)
-			return
-		}
-	}(input)
 	return nil, "", 0
-}
-
-func temp(mountPoint, clusterName, src string, temp bool) []string {
-	// [1] mnt [2] sda
-	_paths := strings.Split(mountPoint, "/")
-
-	if temp {
-		return []string{
-			mountPoint,
-			fmt.Sprintf("gv%c", _paths[2][2]),
-			clusterName,
-			src + mount.TmpFileExt,
-		}
-	}
-	return []string{
-		mountPoint,
-		fmt.Sprintf("gv%c", _paths[2][2]),
-		clusterName,
-		src,
-	}
 }
 
 func (s *ChiaStorageServer) Run() error {
