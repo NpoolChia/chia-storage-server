@@ -6,6 +6,7 @@ import (
 	log "github.com/EntropyPool/entropy-logger"
 	"github.com/NpoolChia/chia-storage-server/pkg/mount"
 	"github.com/NpoolChia/chia-storage-server/tasks"
+	"github.com/NpoolChia/chia-storage-server/util"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"
 )
@@ -37,6 +38,10 @@ func main() {
 			if server == nil {
 				return xerrors.Errorf("can not start chia storage server")
 			}
+
+			// init db
+			util.InitBoltClient(server.config.DBPath)
+
 			err := server.Run()
 			if err != nil {
 				return xerrors.Errorf("fail to run chia storage server: %v", err)

@@ -16,7 +16,9 @@ import (
 )
 
 type ChiaStorageServerConfig struct {
-	Port        int    `json:"port"`
+	Port int `json:"port"`
+	// 数据库地址
+	DBPath      string `json:"db_path"`
 	ClusterName string `json:"cluster_name"`
 }
 

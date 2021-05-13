@@ -9,19 +9,27 @@ import (
 
 var (
 	DefaultBucket = []byte("chia")
-	DefaultDB     = "chia.db"
+	DefaultDB     = "/etc/chia-storage-server.db"
 )
 
 var (
+	dbpath     string
 	boltClient sync.Map
 	lock       sync.Mutex
 )
 
-func BoltClient() (*bolt.DB, error) {
-	return _boltClient()
+func InitBoltClient(path string) {
+	if path == "" {
+		path = DefaultDB
+	}
+	dbpath = path
 }
 
-func _boltClient() (*bolt.DB, error) {
+func BoltClient() (*bolt.DB, error) {
+	return _boltClient(dbpath)
+}
+
+func _boltClient(path string) (*bolt.DB, error) {
 	// Open the my.db data file in your current directory.
 	// It will be created if it doesn't exist.
 	if db, ok := boltClient.Load("bolt"); ok {
@@ -30,7 +38,7 @@ func _boltClient() (*bolt.DB, error) {
 
 	lock.Lock()
 	defer lock.Unlock()
-	db, err := open()
+	db, err := open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +52,12 @@ func Close() error {
 	return nil
 }
 
-func open() (*bolt.DB, error) {
-	db, err := bolt.Open(DefaultDB, 0600, &bolt.Options{Timeout: 10 * time.Second})
+func open(path string) (*bolt.DB, error) {
+	db, err := bolt.Open(path, 0600, &bolt.Options{Timeout: 10 * time.Second})
 	if err != nil {
 		return nil, err
 	}
-	if err = db.View(func(tx *bolt.Tx) error {
+	if err = db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(DefaultBucket)
 		return err
 	}); err != nil {
