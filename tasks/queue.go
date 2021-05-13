@@ -70,7 +70,7 @@ func IsAdded(key string) bool {
 }
 
 // 初始化任务队列
-func NewQueue(qsize int) Qer {
+func NewQueue(qsize int) {
 	if qsize <= 0 {
 		qsize = DefaultQSize
 	}
@@ -81,7 +81,6 @@ func NewQueue(qsize int) Qer {
 	go globalQueue.fetch()
 	// 执行任务
 	go globalQueue.run()
-	return globalQueue
 }
 
 // Add 添加数据

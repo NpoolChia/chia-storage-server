@@ -15,10 +15,10 @@ func main() {
 	mount.InitMount()
 
 	// 初始化队列
-	q := tasks.NewQueue(tasks.DefaultQSize)
-	q.AddCallBack(tasks.TaskTodo, tasks.Fetch)    //拉取
-	q.AddCallBack(tasks.TaskFinish, tasks.Finsih) //完成
-	q.AddCallBack(tasks.TaskFail, tasks.Fail)     //失败
+	tasks.NewQueue(tasks.DefaultQSize)
+	tasks.AddCallBack(tasks.TaskTodo, tasks.Fetch)    //拉取
+	tasks.AddCallBack(tasks.TaskFinish, tasks.Finsih) //完成
+	tasks.AddCallBack(tasks.TaskFail, tasks.Fail)     //失败
 
 	app := &cli.App{
 		Name:                 "chia-storage-service",
