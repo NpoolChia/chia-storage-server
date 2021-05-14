@@ -1,6 +1,4 @@
 # Chia Storage Server
-
-
 ## TODO
 
 1. 数据库设计
@@ -21,3 +19,16 @@ create table chia_storage(
     PRIMARY KEY ( `runoob_id` )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
+
+## 最新修改
+
+1. 配置文件
+
+```json
+{
+  "port": 18080,
+  "db_path": "/etc/chia-storage-server.db",
+  "cluster_name": "chia"
+}
+```
+2. 异步拉取 **chia-storage-proxy** 的 **plot** 文件 
