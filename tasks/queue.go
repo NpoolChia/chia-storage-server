@@ -114,17 +114,21 @@ func (q *queue) run() {
 	for {
 		select {
 		case m := <-q.q:
-			go q.callback[m.Status](m)
+			go func() {
+				defer delete(q.added, m.PlotURL)
+				q.callback[m.Status](m)
+			}()
 		}
 	}
 }
 
 func (q *queue) fetch() {
 	// 每五分钟拉取一次数据
-	for range time.NewTicker(time.Minute * 5).C {
+	for range time.NewTicker(time.Minute * 1).C {
 		db, err := util.BoltClient()
 		if err != nil {
 			log.Errorf(log.Fields{}, "get bolt database client error %v", err)
+			continue
 		}
 
 		if err := db.View(func(tx *bolt.Tx) error {
@@ -133,6 +137,7 @@ func (q *queue) fetch() {
 				meta := Meta{}
 				if err := json.Unmarshal(v, &meta); err != nil {
 					log.Errorf(log.Fields{}, "fetch bolt data to queue error %v", err)
+					return nil
 				}
 				if !IsAdded(meta.PlotURL) && meta.Status != TaskDone {
 					// TODO 同步数据优化
