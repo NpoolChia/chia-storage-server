@@ -116,6 +116,7 @@ func (q *queue) run() {
 		case m := <-q.q:
 			go func() {
 				defer delete(q.added, m.PlotURL)
+				// 这里需要小心 可以使用 ok 形式
 				q.callback[m.Status](m)
 			}()
 		}
