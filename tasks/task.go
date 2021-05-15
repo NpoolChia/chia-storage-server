@@ -64,6 +64,11 @@ func Fetch(input Meta) {
 	}
 
 	defer resp.RawBody().Close()
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf(log.Fields{}, "get file content for %v resp status code %v not %v", input.PlotURL, resp.StatusCode(), http.StatusOK)
+		return
+	}
+
 	if _, err = io.Copy(plot, resp.RawBody()); err != nil {
 		log.Errorf(log.Fields{}, "fail to write file content for %v: %v", input.PlotURL, err)
 		return
