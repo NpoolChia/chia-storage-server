@@ -4,14 +4,11 @@ import (
 	"os"
 
 	log "github.com/EntropyPool/entropy-logger"
-	"github.com/NpoolChia/chia-storage-server/pkg/mount"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"
 )
 
 func main() {
-	// initMount
-	mount.InitMount()
 	app := &cli.App{
 		Name:                 "chia-storage-service",
 		Usage:                "chia storage service",
