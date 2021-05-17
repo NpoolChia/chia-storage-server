@@ -4,7 +4,6 @@ import (
 	"os"
 
 	log "github.com/EntropyPool/entropy-logger"
-	"github.com/NpoolChia/chia-storage-server/pkg/mount"
 	"github.com/NpoolChia/chia-storage-server/tasks"
 	"github.com/NpoolChia/chia-storage-server/util"
 	"github.com/urfave/cli/v2"
@@ -12,9 +11,6 @@ import (
 )
 
 func main() {
-	// initMount
-	mount.InitMount()
-
 	// 初始化队列
 	tasks.NewQueue(tasks.DefaultQSize)
 	tasks.AddCallBack(tasks.TaskTodo, tasks.Fetch)    //拉取

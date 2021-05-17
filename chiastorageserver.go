@@ -20,6 +20,7 @@ type ChiaStorageServerConfig struct {
 	// 数据库地址
 	DBPath      string `json:"db_path"`
 	ClusterName string `json:"cluster_name"`
+	ReservedSpace uint64 `json:"reserved_space"`
 }
 
 type ChiaStorageServer struct {
@@ -45,6 +46,7 @@ func NewChiaStorageServer(configFile string) *ChiaStorageServer {
 	}
 
 	log.Infof(log.Fields{}, "successful to create chia storage server")
+	mount.InitMount(config.ReservedSpace)
 
 	return server
 }

@@ -34,6 +34,7 @@ var (
 	_mountInfos   mountInfos
 	lock          sync.Mutex
 	curMountIndex int
+	reservedSpace uint64
 )
 
 func (a mountInfos) Len() int      { return len(a) }
@@ -62,7 +63,7 @@ func (a mountInfos) mount() mountInfo {
 
 	for i := 0; i < len(a); i++ {
 		myInfo := a[(curMountIndex+i)%len(a)]
-		if myInfo.size < 600*1024*1024*1024 {
+		if myInfo.size < reservedSpace {
 			log.Infof(log.Fields{}, "%v available %v < 600G", myInfo.path, myInfo.size)
 			continue
 		}
@@ -87,7 +88,8 @@ func Mount() string {
 }
 
 // InitMount find all mount info
-func InitMount() error {
+func InitMount(reserved uint64) error {
+	reservedSpace = reserved
 	tmps, _ := exec.Command("/usr/bin/find", "/mnt", "-name", "*.tmp").Output()
 	tmpFiles := strings.Split(string(tmps), "\n")
 	for _, tmp := range tmpFiles {
