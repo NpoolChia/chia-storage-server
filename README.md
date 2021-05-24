@@ -42,7 +42,7 @@ Description=Chia Plotter
 After=lotus-mount-disk.service
 
 [Service]
-ExecStart=/usr/local/bin/chia-storage-server --config /etc/chia-storage-service.conf
+ExecStart=/usr/local/bin/chia-storage-server --config /etc/chia-storage-server.conf
 Restart=always
 RestartSec=10
 MemoryAccounting=true
