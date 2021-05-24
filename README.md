@@ -28,7 +28,8 @@ create table chia_storage(
 {
   "port": 18080,
   "db_path": "/etc/chia-storage-server.db",
-  "cluster_name": "chia"
+  "cluster_name": "chia",
+  "reserved_space": 100000000000
 }
 ```
 2. 异步拉取 **chia-storage-proxy** 的 **plot** 文件
