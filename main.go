@@ -29,7 +29,7 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "config",
-				Value: "./chia-storage-service.conf",
+				Value: "./chia-storage-server.conf",
 			},
 		},
 		Action: func(cctx *cli.Context) error {
