@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	mountRoot = "/mnt"
+	tmpFileSize = 101 * 1024 * 1024 * util.KB // 101G->kb
+	mountRoot   = "/mnt"
 	// TmpFileExt temporary file Extension
 	TmpFileExt = ".tmp"
 )
@@ -46,25 +47,13 @@ func (a mountInfos) Less(i, j int) bool {
 
 // Choose the right moint point
 func (a mountInfos) mount() mountInfo {
-	// lazy check
-	/*
-		if len(a) > 0 {
-			if !sort.IsSorted(mountInfos(a)) {
-				// lazy sort
-				sort.Sort(mountInfos(a))
-			}
-			log.Infof(log.Fields{}, "%v will be used", a[0].path)
-			return a[0]
-		}
-	*/
-
 	info := mountInfo{}
 	index := 0
 
 	for i := 0; i < len(a); i++ {
 		myInfo := a[(curMountIndex+i)%len(a)]
 		if myInfo.size < reservedSpace {
-			log.Infof(log.Fields{}, "%v available %v < 600G", myInfo.path, myInfo.size)
+			log.Infof(log.Fields{}, "%v available %v < %v", myInfo.path, myInfo.size, reservedSpace)
 			continue
 		}
 		info = myInfo
@@ -117,9 +106,10 @@ func initMount() error {
 				return nil
 			}
 
+			// 读取目录下的 tmp 文件个数, 每个累计101G
 			mountPoints[absMountPath] = mountInfo{
 				path: absMountPath,
-				size: avail,
+				size: avail - getTmpFileSize(absMountPath),
 			}
 		}
 
@@ -135,4 +125,18 @@ func initMount() error {
 	lock.Unlock()
 
 	return nil
+}
+
+// getTmpFileSize 获取指定目录下的 tmp 文件个数
+func getTmpFileSize(root string) (size uint64) {
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+		if filepath.Ext(path) == TmpFileExt {
+			size += tmpFileSize
+		}
+		return nil
+	})
+	return
 }

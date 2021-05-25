@@ -55,8 +55,17 @@ func Fetch(input Meta) {
 		log.Errorf(log.Fields{}, "fail to create tmp for %v: %v", input.PlotURL, err)
 		return
 	}
-
 	defer plot.Close()
+
+	// 移除临时文件
+	defer func() {
+		// 文件存在
+		_, err := os.Stat(tmp)
+		if err == nil {
+			os.Remove(tmp)
+		}
+	}()
+
 	resp, err = httpdaemon.R().SetDoNotParseResponse(true).Get(input.PlotURL)
 	if err != nil {
 		log.Errorf(log.Fields{}, "fail to get file content for %v: %v", input.PlotURL, err)
@@ -74,14 +83,6 @@ func Fetch(input Meta) {
 		return
 	}
 
-	// 移除临时文件
-	defer func() {
-		// 文件存在
-		_, err := os.Stat(tmp)
-		if err == nil {
-			os.Remove(tmp)
-		}
-	}()
 	plotFile = filepath.Join(temp(path, input.ClusterName, plotFile, false)...)
 	if err = os.Rename(tmp, plotFile); err != nil {
 		log.Errorf(log.Fields{}, "fail to rename tmp file for %v: %v", input.PlotURL, err)
