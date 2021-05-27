@@ -23,13 +23,13 @@ import (
 
 func Fetch(input Meta) {
 	var (
-		err    error
+		done   bool  = false
 		status uint8 = TaskFinish
 		resp   *resty.Response
 	)
 
 	defer func() {
-		if err != nil {
+		if !done {
 			update(input.PlotURL, TaskFail)
 		}
 	}()
@@ -42,7 +42,7 @@ func Fetch(input Meta) {
 	// 没有挂载的盘符
 	if path == "" {
 		// TODO
-		err = xerrors.Errorf("no suitable path found")
+		err := xerrors.Errorf("no suitable path found")
 		log.Errorf(log.Fields{}, "fail to select disk for %v: %v", input.PlotURL, err)
 		return
 	}
@@ -91,6 +91,7 @@ func Fetch(input Meta) {
 
 	// update bolt database
 	err = update(input.PlotURL, status)
+	done = true
 	return
 }
 
