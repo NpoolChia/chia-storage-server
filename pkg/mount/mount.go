@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	_ "sort"
 	"strings"
 	"sync"
@@ -41,8 +42,7 @@ var (
 func (a mountInfos) Len() int      { return len(a) }
 func (a mountInfos) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a mountInfos) Less(i, j int) bool {
-	// first sort by size, then tmp file count
-	return a[i].size > a[j].size
+	return a[i].path > a[j].path
 }
 
 // Choose the right moint point
@@ -95,14 +95,21 @@ func initMount() error {
 			return nil
 		}
 
+		// not a dir
+		if !info.IsDir() {
+			return nil
+		}
+
 		ok, err := util.IsMountPoint(absMountPath)
 		if err != nil {
+			log.Infof(log.Fields{}, "check %v is mount point error %v", absMountPath, err)
 			return nil
 		}
 
 		if ok {
 			avail, err := util.New(absMountPath).GetAvail()
 			if err != nil {
+				log.Infof(log.Fields{}, "get mount point %v avail space error %v", absMountPath, err)
 				return nil
 			}
 
@@ -122,6 +129,9 @@ func initMount() error {
 		log.Infof(log.Fields{}, "append valid mountpoint %v | %v", v.path, v.size)
 		_mountInfos = append(_mountInfos, v)
 	}
+
+	// sort by mount point path
+	sort.Sort(_mountInfos)
 	lock.Unlock()
 
 	return nil
