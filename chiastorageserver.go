@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -85,9 +84,7 @@ func (s *ChiaStorageServer) UploadPlotRequest(w http.ResponseWriter, req *http.R
 
 	if err := db.Update(func(tx *bolt.Tx) error {
 		bk := tx.Bucket(util.DefaultBucket)
-		if r := bk.Get([]byte(input.PlotURL)); r != nil {
-			return fmt.Errorf("chia plot file url: %s already added", input.PlotURL)
-		}
+		bk.Delete([]byte(input.PlotURL))
 		meta := tasks.Meta{
 			Status:      tasks.TaskTodo,
 			ClusterName: s.config.ClusterName,
