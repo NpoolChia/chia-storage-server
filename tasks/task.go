@@ -36,8 +36,6 @@ func Fetch(input Meta) {
 
 	plotFile := filepath.Base(input.PlotURL)
 
-	// 选择存放的目录
-	log.Infof(log.Fields{}, "try to select suitable path for %v", input.PlotURL)
 	path := mount.Mount()
 	// 没有挂载的盘符
 	if path == "" {
@@ -46,6 +44,9 @@ func Fetch(input Meta) {
 		log.Errorf(log.Fields{}, "fail to select disk for %v: %v", input.PlotURL, err)
 		return
 	}
+
+	// 选择存放的目录
+	log.Infof(log.Fields{}, "try to select suitable path for %v for %v", path, input.PlotURL)
 
 	tmp := filepath.Join(temp(path, input.ClusterName, plotFile, true)...)
 	os.MkdirAll(filepath.Dir(tmp), 0666)
