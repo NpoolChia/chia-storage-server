@@ -46,7 +46,7 @@ func Fetch(input Meta) {
 	}
 
 	// 选择存放的目录
-	log.Infof(log.Fields{}, "try to select suitable path for %v for %v", path, input.PlotURL)
+	log.Infof(log.Fields{}, "try to select suitable path %v for %v", path, input.PlotURL)
 
 	tmp := filepath.Join(temp(path, input.ClusterName, plotFile, true)...)
 	os.MkdirAll(filepath.Dir(tmp), 0666)

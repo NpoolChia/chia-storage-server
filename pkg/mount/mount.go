@@ -72,8 +72,10 @@ func (a mountInfos) mount() mountInfo {
 func Mount() string {
 	initMount()
 	lock.Lock()
-	defer lock.Unlock()
-	return _mountInfos.mount().path
+	path := _mountInfos.mount().path
+	log.Infof(log.Fields{}, "select mount path %v", path)
+	lock.Unlock()
+	return path
 }
 
 // InitMount find all mount info
