@@ -45,6 +45,9 @@ func Fetch(input Meta) {
 		return
 	}
 
+	// down task
+	defer mount.SetMountPointIdle(path)
+
 	// 选择存放的目录
 	log.Infof(log.Fields{}, "try to select suitable path %v for %v", path, input.PlotURL)
 

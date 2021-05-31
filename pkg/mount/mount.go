@@ -18,10 +18,36 @@ const (
 	mountRoot   = "/mnt"
 	// TmpFileExt temporary file Extension
 	TmpFileExt = ".tmp"
+
+	mountPointMaxConcurrent = 2
 )
+
+type mountPointStatus struct {
+	tasks uint8
+}
+
+func (m mountPointStatus) isIdle() bool {
+	return m.tasks < mountPointMaxConcurrent
+}
+
+func (m mountPointStatus) incTask() {
+	if m.tasks >= 2 {
+	} else {
+		m.tasks = (m.tasks%mountPointMaxConcurrent + 1)
+	}
+}
+
+func (m mountPointStatus) desTask() {
+	if m.tasks <= 0 {
+	} else {
+		m.tasks = (m.tasks - 1) % mountPointMaxConcurrent
+	}
+}
 
 type (
 	mountInfo struct {
+		// 挂载点状态
+		status mountPointStatus
 		// 挂载点
 		path string
 		// 大小
@@ -51,12 +77,19 @@ func (a mountInfos) mount() mountInfo {
 	index := 0
 
 	for i := 0; i < len(a); i++ {
-		myInfo := a[(curMountIndex+i)%len(a)]
-		if myInfo.size < reservedSpace {
-			log.Infof(log.Fields{}, "%v available %v < %v", myInfo.path, myInfo.size, reservedSpace)
+		_cur := (curMountIndex + i) % len(a)
+		// current moint point working, continue
+		if !a[_cur].status.isIdle() {
 			continue
 		}
-		info = myInfo
+		if a[_cur].size < reservedSpace {
+			log.Infof(log.Fields{}, "%v available %v < %v", a[_cur].path, a[_cur].size, reservedSpace)
+			continue
+		}
+
+		// TODO isIdle incTask 可以包装在一起
+		a[_cur].status.incTask()
+		info = a[_cur]
 		index = i
 		break
 	}
@@ -68,6 +101,18 @@ func (a mountInfos) mount() mountInfo {
 	return info
 }
 
+// update moint point statue
+func (a mountInfos) updateStatus(mountPoint string) {
+	lock.Lock()
+	for idx := range _mountInfos {
+		if _mountInfos[idx].path == mountPoint {
+			_mountInfos[idx].status.desTask()
+			break
+		}
+	}
+	lock.Unlock()
+}
+
 // Mount 寻找合适的目录
 func Mount() string {
 	initMount()
@@ -76,6 +121,11 @@ func Mount() string {
 	log.Infof(log.Fields{}, "select mount path %v", path)
 	lock.Unlock()
 	return path
+}
+
+// update mount point status
+func SetMountPointIdle(mountPoint string) {
+	_mountInfos.updateStatus(mountPoint)
 }
 
 // InitMount find all mount info
