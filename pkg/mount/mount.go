@@ -176,12 +176,26 @@ func initMount() error {
 	})
 
 	lock.Lock()
-	_mountInfos = []mountInfo{}
-	for _, v := range mountPoints {
-		log.Infof(log.Fields{}, "append valid mountpoint %v | %v", v.path, v.size)
-		_mountInfos = append(_mountInfos, v)
+	mp := make(map[string]mountInfo)
+	for _, v := range _mountInfos {
+		mp[v.path] = v
 	}
 
+	// 防止吊盘,盘损坏
+	_newmountInfos := []mountInfo{}
+	for _, v := range mountPoints {
+		if _, ok := mp[v.path]; ok {
+			_newmountInfos = append(_newmountInfos, mountInfo{
+				path:   v.path,
+				size:   v.size,
+				status: mp[v.path].status,
+			})
+		} else {
+			_newmountInfos = append(_newmountInfos, v)
+		}
+		log.Infof(log.Fields{}, "append valid mountpoint %v | %v", v.path, v.size)
+	}
+	_mountInfos = _newmountInfos
 	// sort by mount point path
 	sort.Sort(_mountInfos)
 	lock.Unlock()
