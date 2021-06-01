@@ -26,7 +26,7 @@ type mountPointStatus struct {
 	tasks uint8
 }
 
-func (m *mountPointStatus) isIdle() bool {
+func (m mountPointStatus) isIdle() bool {
 	return m.tasks < mountPointMaxConcurrent
 }
 
@@ -37,7 +37,7 @@ func (m *mountPointStatus) incTask() {
 	}
 }
 
-func (m mountPointStatus) desTask() {
+func (m *mountPointStatus) desTask() {
 	if m.tasks <= 0 {
 	} else {
 		m.tasks = (m.tasks - 1) % mountPointMaxConcurrent
