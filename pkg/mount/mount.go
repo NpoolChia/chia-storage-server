@@ -26,11 +26,11 @@ type mountPointStatus struct {
 	tasks uint8
 }
 
-func (m mountPointStatus) isIdle() bool {
+func (m *mountPointStatus) isIdle() bool {
 	return m.tasks < mountPointMaxConcurrent
 }
 
-func (m mountPointStatus) incTask() {
+func (m *mountPointStatus) incTask() {
 	if m.tasks >= 2 {
 	} else {
 		m.tasks = (m.tasks%mountPointMaxConcurrent + 1)
@@ -181,7 +181,7 @@ func initMount() error {
 		mp[v.path] = v
 	}
 
-	// 防止吊盘,盘损坏
+	// 防止掉盘,盘损坏
 	_newmountInfos := []mountInfo{}
 	for _, v := range mountPoints {
 		if _, ok := mp[v.path]; ok {
@@ -193,7 +193,7 @@ func initMount() error {
 		} else {
 			_newmountInfos = append(_newmountInfos, v)
 		}
-		log.Infof(log.Fields{}, "append valid mountpoint %v | %v", v.path, v.size)
+		// log.Infof(log.Fields{}, "append valid mountpoint %v | %v", v.path, v.size)
 	}
 	_mountInfos = _newmountInfos
 	// sort by mount point path
