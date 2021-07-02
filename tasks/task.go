@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/NpoolChia/chia-storage-server/pkg/mount"
 	"github.com/NpoolChia/chia-storage-server/util"
@@ -172,18 +173,23 @@ func update(key string, status uint8) error {
 func temp(mountPoint, clusterName, src string, temp bool) []string {
 	// [1] mnt [2] sda
 	_paths := strings.Split(mountPoint, "/")
-
+	subPath := strings.TrimRightFunc(_paths[2][2:], func(r rune) bool {
+		if unicode.IsDigit(r) {
+			return true
+		}
+		return false
+	})
 	if temp {
 		return []string{
 			mountPoint,
-			fmt.Sprintf("gv%s", _paths[2][2:]),
+			fmt.Sprintf("gv%s", subPath),
 			clusterName,
 			src + mount.TmpFileExt,
 		}
 	}
 	return []string{
 		mountPoint,
-		fmt.Sprintf("gv%s", _paths[2][2:]),
+		fmt.Sprintf("gv%s", subPath),
 		clusterName,
 		src,
 	}
