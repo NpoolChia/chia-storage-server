@@ -19,7 +19,7 @@ const (
 	// TmpFileExt temporary file Extension
 	TmpFileExt = ".tmp"
 
-	mountPointMaxConcurrent = 2
+	mountPointMaxConcurrent = 1
 )
 
 type mountPointStatus struct {
